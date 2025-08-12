@@ -2274,26 +2274,26 @@ if auth_status:
         # Display results
         st.write("### Calculation Results")
 
-        # import io
-        # import pandas as pd
-        # from datetime import datetime
+        import io
+        import pandas as pd
+        from datetime import datetime
 
-        # # 🧼 Sanitize df2 before display or upload
-        # def sanitize_dataframe(df):
-        #     for col in df.select_dtypes(include=["object"]).columns:
-        #         df[col] = df[col].apply(lambda x: str(x) if isinstance(x, (list, dict)) else x)
-        #     return df
+        # 🧼 Sanitize df2 before display or upload
+        def sanitize_dataframe(df):
+            for col in df.select_dtypes(include=["object"]).columns:
+                df[col] = df[col].apply(lambda x: str(x) if isinstance(x, (list, dict)) else x)
+            return df
 
-        # df2 = sanitize_dataframe(df2)
+        df2 = sanitize_dataframe(df2)
 
-        # # 📥 Download button
-        # csv = df2.to_csv(index=False)
-        # st.download_button(
-        #     label="Download results as CSV",
-        #     data=csv,
-        #     file_name=f"LNG_calculations_{ship_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-        #     mime='text/csv'
-        # )
+        # 📥 Download button
+        csv = df2.to_csv(index=False)
+        st.download_button(
+            label="Download results as CSV",
+            data=csv,
+            file_name=f"LNG_calculations_{ship_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            mime='text/csv'
+        )
 
         # # 📤 Prepare for Supabase upload
         # new_df = df2.copy()
