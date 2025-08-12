@@ -1,0 +1,12 @@
+pandas
+numpy
+scipy
+reportlab
+openpyxl
+streamlit 
+plotly
+pyyaml
+streamlit-authenticator==0.2.3
+bcrypt
+supabase
+couchdb
