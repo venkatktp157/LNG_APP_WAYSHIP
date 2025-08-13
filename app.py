@@ -2295,10 +2295,12 @@ if auth_status:
         #     mime='text/csv'
         # )
 
+        import pandas as pd
         from datetime import date
-        
-        # Ensure 'date' column is datetime
-        df2['Date'] = pd.to_datetime(df2['Date'])
+        import streamlit as st
+
+        # Convert from milliseconds to datetime
+        df2['Date'] = pd.to_datetime(df2['Date'], unit='ms')
 
         # Format selector
         format = st.selectbox("Choose output format", ["CSV", "JSON"])
@@ -2314,11 +2316,13 @@ if auth_status:
             df_selected = df2[df2['Date'].dt.date == selected_date]
 
             if not df_selected.empty:
+                # Format 'Date' column as string for JSON output
+                df_selected['Date'] = df_selected['Date'].dt.strftime('%Y-%m-%d')
+
                 json_data = df_selected.to_json(orient="records", indent=2)
                 st.download_button(f"Download JSON for {selected_date}", json_data, "output.json", "application/json")
             else:
                 st.warning(f"No records found for {selected_date}.")
-
 
         # format = st.selectbox("Choose output format", ["CSV", "JSON"])
         # if format == "CSV":
