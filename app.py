@@ -2298,7 +2298,7 @@ if auth_status:
         from datetime import date
         
         # Ensure 'date' column is datetime
-        df2['date'] = pd.to_datetime(df2['date'])
+        df2['Date'] = pd.to_datetime(df2['Date'])
 
         # Format selector
         format = st.selectbox("Choose output format", ["CSV", "JSON"])
@@ -2311,7 +2311,7 @@ if auth_status:
             selected_date = st.date_input("Select date for JSON download", value=date.today())
 
             # Filter records for selected date
-            df_selected = df2[df2['date'].dt.date == selected_date]
+            df_selected = df2[df2['Date'].dt.date == selected_date]
 
             if not df_selected.empty:
                 json_data = df_selected.to_json(orient="records", indent=2)
