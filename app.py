@@ -2310,7 +2310,7 @@ if auth_status:
 
         else:
             # Date picker for JSON
-            selected_date = st.date_input("Select date for JSON download", value=date.today())
+            selected_date = st.date_input("Select date for JSON download") #,value=date.today())
 
             # Filter records for selected date
             df_selected = df2[df2['Date'].dt.date == selected_date]
