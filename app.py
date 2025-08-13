@@ -2300,7 +2300,7 @@ if auth_status:
         import streamlit as st
 
         # Convert from milliseconds to datetime
-        df2['Date'] = pd.to_datetime(df2['Date'], unit='ms')
+        df2['Date'] = pd.to_datetime(df2['Date'])
 
         # Format selector
         format = st.selectbox("Choose output format", ["CSV", "JSON"])
