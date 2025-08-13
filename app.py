@@ -2295,11 +2295,36 @@ if auth_status:
         #     mime='text/csv'
         # )
 
+        from datetime import date
+        
+        # Ensure 'date' column is datetime
+        df2['date'] = pd.to_datetime(df2['date'])
+
+        # Format selector
         format = st.selectbox("Choose output format", ["CSV", "JSON"])
+
         if format == "CSV":
             st.download_button("Download CSV", df2.to_csv(index=False), "output.csv", "text/csv")
+
         else:
-            st.download_button("Download JSON", df2.to_json(orient="records", indent=2), "output.json", "application/json")
+            # Date picker for JSON
+            selected_date = st.date_input("Select date for JSON download", value=date.today())
+
+            # Filter records for selected date
+            df_selected = df2[df2['date'].dt.date == selected_date]
+
+            if not df_selected.empty:
+                json_data = df_selected.to_json(orient="records", indent=2)
+                st.download_button(f"Download JSON for {selected_date}", json_data, "output.json", "application/json")
+            else:
+                st.warning(f"No records found for {selected_date}.")
+
+
+        # format = st.selectbox("Choose output format", ["CSV", "JSON"])
+        # if format == "CSV":
+        #     st.download_button("Download CSV", df2.to_csv(index=False), "output.csv", "text/csv")
+        # else:
+        #     st.download_button("Download JSON", df2.to_json(orient="records", indent=2), "output.json", "application/json")
 
 
         # # 📤 Prepare for Supabase upload
