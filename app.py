@@ -2286,14 +2286,21 @@ if auth_status:
 
         df2 = sanitize_dataframe(df2)
 
-        # 📥 Download button
-        csv = df2.to_csv(index=False)
-        st.download_button(
-            label="Download results as CSV",
-            data=csv,
-            file_name=f"LNG_calculations_{ship_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-            mime='text/csv'
-        )
+        # # 📥 Download button
+        # csv = df2.to_csv(index=False)
+        # st.download_button(
+        #     label="Download results as CSV",
+        #     data=csv,
+        #     file_name=f"LNG_calculations_{ship_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+        #     mime='text/csv'
+        # )
+
+        format = st.selectbox("Choose output format", ["CSV", "JSON"])
+        if format == "CSV":
+            st.download_button("Download CSV", df.to_csv(index=False), "output.csv", "text/csv")
+        else:
+            st.download_button("Download JSON", df.to_json(orient="records", indent=2), "output.json", "application/json")
+
 
         # # 📤 Prepare for Supabase upload
         # new_df = df2.copy()
