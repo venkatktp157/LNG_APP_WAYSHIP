@@ -2297,9 +2297,9 @@ if auth_status:
 
         format = st.selectbox("Choose output format", ["CSV", "JSON"])
         if format == "CSV":
-            st.download_button("Download CSV", df.to_csv(index=False), "output.csv", "text/csv")
+            st.download_button("Download CSV", df2.to_csv(index=False), "output.csv", "text/csv")
         else:
-            st.download_button("Download JSON", df.to_json(orient="records", indent=2), "output.json", "application/json")
+            st.download_button("Download JSON", df2.to_json(orient="records", indent=2), "output.json", "application/json")
 
 
         # # 📤 Prepare for Supabase upload
