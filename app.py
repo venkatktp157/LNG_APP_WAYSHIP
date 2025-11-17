@@ -985,43 +985,8 @@ if auth_status:
                 data=pdf_buffer,
                 file_name="lng_bunkering_report.pdf",
                 mime="application/pdf",
-            )  
-            
-        # from supabase import create_client
-                    
-        # # 🔐 Supabase credentials
-        # SUPABASE_URL = st.secrets["supabase"]["url"]
-        # SUPABASE_KEY = st.secrets["supabase"]["service_role_key"]
-        # supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-        # def upload_pdf_to_supabase(pdf_bytes, filename="lng_bunkering_report.pdf"):
-        #     bucket = "pdf-reports"
-        #     try:
-        #         # Upload without deleting old file
-        #         response = supabase.storage.from_(bucket).upload(
-        #             filename,
-        #             pdf_bytes,
-        #             {"content-type": "application/pdf"}
-        #         )
-        #         st.success("PDF uploaded to Supabase Storage.")
-        #         st.write("Upload response:", response)
-        #     except Exception as e:
-        #         st.error(f"Upload failed: {e}")
-
-        # uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
-
-        # if uploaded_file:
-        #     st.write(f"Selected file: {uploaded_file.name}")
-
-        #     if st.button("📤 Upload PDF to Supabase"):
-        #         pdf_bytes = uploaded_file.read()
-        #         try:
-        #             response = upload_pdf_to_supabase(pdf_bytes, filename=uploaded_file.name)
-        #             st.success(f"✅ Uploaded {uploaded_file.name} successfully!")
-        #             st.write(response)
-        #         except Exception as e:
-        #             st.error(f"❌ Upload failed: {e}")
-
+            )              
+       
     #---------------------------------------------------------------------------------------------------------------------------------
     # PKI MN CALCULATIONS
 
@@ -1438,7 +1403,7 @@ if auth_status:
         db = server[DB_NAME]
 
         # Cache data fetch from CouchDB
-        @st.cache_data(ttl=60)
+        @st.cache_data(ttl=0)
         def fetch_data():
             docs = [db[doc_id] for doc_id in db]
             df = pd.DataFrame(docs)
@@ -1460,8 +1425,9 @@ if auth_status:
 
             # Manual refresh
             if st.button("🔄 Refresh Data"):
-                st.cache_data.clear()
-                st.rerun()
+                st.experimental_rerun()
+                # st.cache_data.clear()
+                # st.rerun()
 
             # Timestamp
             st.caption(f"Last updated UTC: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}")
