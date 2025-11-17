@@ -1402,10 +1402,18 @@ if auth_status:
         server = couchdb.Server(COUCHDB_URL)
         db = server[DB_NAME]
 
-        # Cache data fetch from CouchDB
+        # # Cache data fetch from CouchDB
+        # @st.cache_data(ttl=0)
+        # def fetch_data():
+        #     docs = [db[doc_id] for doc_id in db]
+        #     df = pd.DataFrame(docs)
+        #     return df
+
         @st.cache_data(ttl=0)
         def fetch_data():
-            docs = [db[doc_id] for doc_id in db]
+            # force CouchDB to return fresh docs
+            results = db.view('_all_docs', include_docs=True, stale='false')
+            docs = [row['doc'] for row in results]
             df = pd.DataFrame(docs)
             return df
 
@@ -1425,9 +1433,8 @@ if auth_status:
 
             # Manual refresh
             if st.button("🔄 Refresh Data"):
-                st.experimental_rerun()
-                # st.cache_data.clear()
-                # st.rerun()
+               st.cache_data.clear()
+               st.rerun()
 
             # Timestamp
             st.caption(f"Last updated UTC: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -2252,90 +2259,50 @@ if auth_status:
 
         df2 = sanitize_dataframe(df2)
 
-        # # 📥 Download button
-        # csv = df2.to_csv(index=False)
-        # st.download_button(
-        #     label="Download results as CSV",
-        #     data=csv,
-        #     file_name=f"LNG_calculations_{ship_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-        #     mime='text/csv'
-        # )
+        # 📥 Download button
+        csv = df2.to_csv(index=False)
+        st.download_button(
+            label="Download results as CSV",
+            data=csv,
+            file_name=f"LNG_calculations_{ship_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            mime='text/csv'
+        )
 
-        import pandas as pd
-        from datetime import date
-        import streamlit as st
+        # import pandas as pd
+        # from datetime import date
+        # import streamlit as st
 
-        # Convert from milliseconds to datetime
-        df2['Date'] = pd.to_datetime(df2['Date'])
+        # # Convert from milliseconds to datetime
+        # df2['Date'] = pd.to_datetime(df2['Date'])
 
-        # Format selector
-        format = st.selectbox("Choose output format", ["CSV", "JSON"])
+        # # Format selector
+        # format = st.selectbox("Choose output format", ["CSV", "JSON"])
 
-        if format == "CSV":
-            st.download_button("Download CSV", df2.to_csv(index=False), "output.csv", "text/csv")
+        # if format == "CSV":
+        #     st.download_button("Download CSV", df2.to_csv(index=False), "output.csv", "text/csv")
 
-        else:
-            # Date picker for JSON
-            selected_date = st.date_input("Select date for JSON download") #,value=date.today())
+        # else:
+        #     # Date picker for JSON
+        #     selected_date = st.date_input("Select date for JSON download") #,value=date.today())
 
-            # Filter records for selected date
-            df_selected = df2[df2['Date'].dt.date == selected_date]
+        #     # Filter records for selected date
+        #     df_selected = df2[df2['Date'].dt.date == selected_date]
 
-            if not df_selected.empty:
-                # Format 'Date' column as string for JSON output
-                df_selected['Date'] = df_selected['Date'].dt.strftime('%Y-%m-%d')
+        #     if not df_selected.empty:
+        #         # Format 'Date' column as string for JSON output
+        #         df_selected['Date'] = df_selected['Date'].dt.strftime('%Y-%m-%d')
 
-                json_data = df_selected.to_json(orient="records", indent=2)
-                st.download_button(f"Download JSON for {selected_date}", json_data, "output.json", "application/json")
-            else:
-                st.warning(f"No records found for {selected_date}.")
+        #         json_data = df_selected.to_json(orient="records", indent=2)
+        #         st.download_button(f"Download JSON for {selected_date}", json_data, "output.json", "application/json")
+        #     else:
+        #         st.warning(f"No records found for {selected_date}.")
 
         # format = st.selectbox("Choose output format", ["CSV", "JSON"])
         # if format == "CSV":
         #     st.download_button("Download CSV", df2.to_csv(index=False), "output.csv", "text/csv")
         # else:
         #     st.download_button("Download JSON", df2.to_json(orient="records", indent=2), "output.json", "application/json")
-
-
-        # # 📤 Prepare for Supabase upload
-        # new_df = df2.copy()
-        # new_df["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        # def refresh_supabase_csv(new_df):
-        #     import io
-        #     from datetime import datetime
-
-        #     bucket = "cal-tank-data"
-        #     filename = "calculated_data.csv"
-
-        #     # Add timestamp
-        #     new_df["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        #     # Convert to CSV
-        #     csv_buffer = io.StringIO()
-        #     new_df.to_csv(csv_buffer, index=False)
-        #     csv_bytes = csv_buffer.getvalue().encode("utf-8")
-
-        #     try:
-        #         # Step 1: Delete existing file
-        #         supabase.storage.from_(bucket).remove([filename])
-
-        #         # Step 2: Upload new file
-        #         supabase.storage.from_(bucket).upload(
-        #             filename,
-        #             csv_bytes,
-        #             {"content-type": "text/csv"}
-        #         )
-        #         st.success("CSV overwritten in Supabase Storage.")
-        #     except Exception as e:
-        #         st.error(f"Upload failed: {e}")
-
-
-        # # 🖱️ Upload trigger
-        # if st.button("📤 Upload Calculated CSV to Supabase"):
-        #     refresh_supabase_csv(new_df)
-        #     st.success("CSV updated in Supabase Storage!")
-
+       
         #----------------------------------------------------------------------------------------------------------
         
         #Date filter for dataet for visualisations:
