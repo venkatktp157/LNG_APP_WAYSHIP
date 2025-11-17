@@ -1410,12 +1410,15 @@ if auth_status:
         #     return df
 
         @st.cache_data(ttl=0)
-        def fetch_data():
-            # Always fresh results (no stale param)
-            results = db.view('_all_docs', include_docs=True)
-            docs = [row['doc'] for row in results]
-            df = pd.DataFrame(docs)
-            return df
+        def fetch_data(ship_id: str):
+            # Query CouchDB for docs related to this ship_id
+            # Example: if you store ship_id in a field
+            results = db.find({"selector": {"ship_id": ship_id}})
+            docs = [doc for doc in results]
+            return pd.DataFrame(docs)
+        
+        # UI: select ship
+        ship_id = st.selectbox("Select Ship", list(available_ships.keys()))
 
         # Initialize empty DataFrame with all columns
         df = pd.DataFrame(0, index=[0], columns=columns)
