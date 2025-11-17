@@ -985,8 +985,43 @@ if auth_status:
                 data=pdf_buffer,
                 file_name="lng_bunkering_report.pdf",
                 mime="application/pdf",
-            )              
-       
+            )  
+            
+        # from supabase import create_client
+                    
+        # # 🔐 Supabase credentials
+        # SUPABASE_URL = st.secrets["supabase"]["url"]
+        # SUPABASE_KEY = st.secrets["supabase"]["service_role_key"]
+        # supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+        # def upload_pdf_to_supabase(pdf_bytes, filename="lng_bunkering_report.pdf"):
+        #     bucket = "pdf-reports"
+        #     try:
+        #         # Upload without deleting old file
+        #         response = supabase.storage.from_(bucket).upload(
+        #             filename,
+        #             pdf_bytes,
+        #             {"content-type": "application/pdf"}
+        #         )
+        #         st.success("PDF uploaded to Supabase Storage.")
+        #         st.write("Upload response:", response)
+        #     except Exception as e:
+        #         st.error(f"Upload failed: {e}")
+
+        # uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
+
+        # if uploaded_file:
+        #     st.write(f"Selected file: {uploaded_file.name}")
+
+        #     if st.button("📤 Upload PDF to Supabase"):
+        #         pdf_bytes = uploaded_file.read()
+        #         try:
+        #             response = upload_pdf_to_supabase(pdf_bytes, filename=uploaded_file.name)
+        #             st.success(f"✅ Uploaded {uploaded_file.name} successfully!")
+        #             st.write(response)
+        #         except Exception as e:
+        #             st.error(f"❌ Upload failed: {e}")
+
     #---------------------------------------------------------------------------------------------------------------------------------
     # PKI MN CALCULATIONS
 
@@ -1402,23 +1437,12 @@ if auth_status:
         server = couchdb.Server(COUCHDB_URL)
         db = server[DB_NAME]
 
-        # # Cache data fetch from CouchDB
-        # @st.cache_data(ttl=0)
-        # def fetch_data():
-        #     docs = [db[doc_id] for doc_id in db]
-        #     df = pd.DataFrame(docs)
-        #     return df
-
-        @st.cache_data(ttl=0)
-        def fetch_data(ship_id: str):
-            # Query CouchDB for docs related to this ship_id
-            # Example: if you store ship_id in a field
-            results = db.find({"selector": {"ship_id": ship_id}})
-            docs = [doc for doc in results]
-            return pd.DataFrame(docs)
-        
-        # UI: select ship
-        ship_id = st.selectbox("Select Ship", list(available_ships.keys()))
+        # Cache data fetch from CouchDB
+        @st.cache_data(ttl=60)
+        def fetch_data():
+            docs = [db[doc_id] for doc_id in db]
+            df = pd.DataFrame(docs)
+            return df
 
         # Initialize empty DataFrame with all columns
         df = pd.DataFrame(0, index=[0], columns=columns)
@@ -1436,8 +1460,8 @@ if auth_status:
 
             # Manual refresh
             if st.button("🔄 Refresh Data"):
-               st.cache_data.clear()
-               st.rerun()
+                st.cache_data.clear()
+                st.rerun()
 
             # Timestamp
             st.caption(f"Last updated UTC: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -2271,41 +2295,45 @@ if auth_status:
             mime='text/csv'
         )
 
-        # import pandas as pd
-        # from datetime import date
-        # import streamlit as st
+        # # 📤 Prepare for Supabase upload
+        # new_df = df2.copy()
+        # new_df["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        # # Convert from milliseconds to datetime
-        # df2['Date'] = pd.to_datetime(df2['Date'])
+        # def refresh_supabase_csv(new_df):
+        #     import io
+        #     from datetime import datetime
 
-        # # Format selector
-        # format = st.selectbox("Choose output format", ["CSV", "JSON"])
+        #     bucket = "cal-tank-data"
+        #     filename = "calculated_data.csv"
 
-        # if format == "CSV":
-        #     st.download_button("Download CSV", df2.to_csv(index=False), "output.csv", "text/csv")
+        #     # Add timestamp
+        #     new_df["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        # else:
-        #     # Date picker for JSON
-        #     selected_date = st.date_input("Select date for JSON download") #,value=date.today())
+        #     # Convert to CSV
+        #     csv_buffer = io.StringIO()
+        #     new_df.to_csv(csv_buffer, index=False)
+        #     csv_bytes = csv_buffer.getvalue().encode("utf-8")
 
-        #     # Filter records for selected date
-        #     df_selected = df2[df2['Date'].dt.date == selected_date]
+        #     try:
+        #         # Step 1: Delete existing file
+        #         supabase.storage.from_(bucket).remove([filename])
 
-        #     if not df_selected.empty:
-        #         # Format 'Date' column as string for JSON output
-        #         df_selected['Date'] = df_selected['Date'].dt.strftime('%Y-%m-%d')
+        #         # Step 2: Upload new file
+        #         supabase.storage.from_(bucket).upload(
+        #             filename,
+        #             csv_bytes,
+        #             {"content-type": "text/csv"}
+        #         )
+        #         st.success("CSV overwritten in Supabase Storage.")
+        #     except Exception as e:
+        #         st.error(f"Upload failed: {e}")
 
-        #         json_data = df_selected.to_json(orient="records", indent=2)
-        #         st.download_button(f"Download JSON for {selected_date}", json_data, "output.json", "application/json")
-        #     else:
-        #         st.warning(f"No records found for {selected_date}.")
 
-        # format = st.selectbox("Choose output format", ["CSV", "JSON"])
-        # if format == "CSV":
-        #     st.download_button("Download CSV", df2.to_csv(index=False), "output.csv", "text/csv")
-        # else:
-        #     st.download_button("Download JSON", df2.to_json(orient="records", indent=2), "output.json", "application/json")
-       
+        # # 🖱️ Upload trigger
+        # if st.button("📤 Upload Calculated CSV to Supabase"):
+        #     refresh_supabase_csv(new_df)
+        #     st.success("CSV updated in Supabase Storage!")
+
         #----------------------------------------------------------------------------------------------------------
         
         #Date filter for dataet for visualisations:
