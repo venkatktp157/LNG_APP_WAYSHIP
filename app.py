@@ -1411,8 +1411,8 @@ if auth_status:
 
         @st.cache_data(ttl=0)
         def fetch_data():
-            # force CouchDB to return fresh docs
-            results = db.view('_all_docs', include_docs=True, stale='false')
+            # Always fresh results (no stale param)
+            results = db.view('_all_docs', include_docs=True)
             docs = [row['doc'] for row in results]
             df = pd.DataFrame(docs)
             return df
