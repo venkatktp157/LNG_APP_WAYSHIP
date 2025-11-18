@@ -19,8 +19,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import warnings
 warnings.filterwarnings('ignore')
-
-from supabase import create_client
+import couchdb
+# from supabase import create_client
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -29,6 +29,10 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 
 from auth import load_authenticator
 from logger import setup_logger
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
 
 # === Authentication ===
 authenticator = load_authenticator()
@@ -104,6 +108,16 @@ if auth_status:
     lng_tanks = ["LNG_TK"]
     lng_tks = ["LNG_TANK"]
     LNG_TK  = ["LNGAS_TK"]
+
+    SHIP_DB_MAP = {
+    "CMA CGM MONACO": "monaco",      # custom mapping for legacy reasons
+    "GREENWAY": "greenway",
+    "CMA CGM PRIDE": "pride",
+    # Add more mappings...
+    }
+
+    def get_db_name_for_ship(ship_id):
+        return SHIP_DB_MAP.get(ship_id, ship_id)
 
     # Set wide layout and custom styles
     st.set_page_config(layout='wide')
@@ -582,9 +596,9 @@ if auth_status:
         elif ship_id in ["QUETZAL", "COPAN"]:   #1400TEU_cont
             BOG_max = 500
             LNG_TK1_cap = 1613
-            identity = "1400TEU_cont"    
-    
-        # Opening Tank Inputs
+            identity = "1400TEU_cont"           
+                  
+            # Opening Tank Inputs
         st.subheader("Opening Tank Details")
         col1, col2, col3 = st.columns(3)
 
@@ -985,43 +999,7 @@ if auth_status:
                 data=pdf_buffer,
                 file_name="lng_bunkering_report.pdf",
                 mime="application/pdf",
-            )  
-            
-        # from supabase import create_client
-                    
-        # # 🔐 Supabase credentials
-        # SUPABASE_URL = st.secrets["supabase"]["url"]
-        # SUPABASE_KEY = st.secrets["supabase"]["service_role_key"]
-        # supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-        # def upload_pdf_to_supabase(pdf_bytes, filename="lng_bunkering_report.pdf"):
-        #     bucket = "pdf-reports"
-        #     try:
-        #         # Upload without deleting old file
-        #         response = supabase.storage.from_(bucket).upload(
-        #             filename,
-        #             pdf_bytes,
-        #             {"content-type": "application/pdf"}
-        #         )
-        #         st.success("PDF uploaded to Supabase Storage.")
-        #         st.write("Upload response:", response)
-        #     except Exception as e:
-        #         st.error(f"Upload failed: {e}")
-
-        # uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
-
-        # if uploaded_file:
-        #     st.write(f"Selected file: {uploaded_file.name}")
-
-        #     if st.button("📤 Upload PDF to Supabase"):
-        #         pdf_bytes = uploaded_file.read()
-        #         try:
-        #             response = upload_pdf_to_supabase(pdf_bytes, filename=uploaded_file.name)
-        #             st.success(f"✅ Uploaded {uploaded_file.name} successfully!")
-        #             st.write(response)
-        #         except Exception as e:
-        #             st.error(f"❌ Upload failed: {e}")
-
+            )                     
     #---------------------------------------------------------------------------------------------------------------------------------
     # PKI MN CALCULATIONS
 
@@ -1377,18 +1355,34 @@ if auth_status:
                 return np.interp(x_val, df[x_col], df[y_col])
 
         st.markdown("<h1 style='color:green; text-align:center;'>🔥PKI METHANE NUMBER CALCULATOR⚗️</h1>", unsafe_allow_html=True)
-        
+
         # Ship and Tank Selection
         ship_id = st.selectbox("Select Ship", list(available_ships.keys()))
         tank_ids = available_ships[ship_id]
 
-        import couchdb
+        # ========== CONFIGURATION ==============
+        COUCHDB_USER = os.getenv("COUCHDB_USER")
+        COUCHDB_PASS = os.getenv("COUCHDB_PASS")
+        COUCHDB_HOST = os.getenv("COUCHDB_HOST", "localhost")
+        COUCHDB_PORT = os.getenv("COUCHDB_PORT", "5984")
 
-        COUCHDB_URL = st.secrets["couchdb"]["url"]  
-        DB_NAME = "lng_app"
+        if not COUCHDB_USER or not COUCHDB_PASS:
+            st.error("❌ CouchDB credentials not set in environment variables.")
+            st.stop()
 
-        couch = couchdb.Server(COUCHDB_URL)
-        db = couch[DB_NAME]
+        COUCHDB_URL = f"http://{COUCHDB_USER}:{COUCHDB_PASS}@{COUCHDB_HOST}:{COUCHDB_PORT}/"
+        db_name = get_db_name_for_ship(ship_id)
+
+        try:
+            couch = couchdb.Server(COUCHDB_URL)
+            if db_name in couch:
+                db = couch[db_name]
+            else:
+                st.error(f"❌ CouchDB database '{db_name}' does not exist.")
+                st.stop()
+        except Exception as e:
+            st.error(f"❌ Failed to connect to CouchDB: {e}")
+            st.stop()
 
         # List of all column names from your dataset
         columns = [
@@ -1433,42 +1427,30 @@ if auth_status:
             "total_volume"
         ]
 #-----------------------------------------------------------------------------------------------------
-        # Connect to CouchDB
-        server = couchdb.Server(COUCHDB_URL)
-        db = server[DB_NAME]
+        def fetch_data(columns):
+            try:
+                # Pull all docs from CouchDB
+                docs = [db[doc_id] for doc_id in db]
+                df = pd.DataFrame(docs).fillna(0)
 
-        # Cache data fetch from CouchDB
-        @st.cache_data(ttl=60)
-        def fetch_data():
-            docs = [db[doc_id] for doc_id in db]
-            df = pd.DataFrame(docs)
-            return df
+                if df.empty:
+                    st.warning("⚠️ No matching documents found for given ship_id and tank_ids")
+                    # Return a single dummy row of zeros with all expected columns
+                    return pd.DataFrame(0, index=[0], columns=columns)
 
-        # Initialize empty DataFrame with all columns
-        df = pd.DataFrame(0, index=[0], columns=columns)
+                # Ensure all expected columns are present
+                for col in columns:
+                    if col not in df.columns:
+                        df[col] = 0
 
-        try:
-            couch_df = fetch_data().fillna(0)
+                # Reorder columns
+                return df[columns]
 
-            # Ensure all expected columns are present
-            for col in columns:
-                if col not in couch_df.columns:
-                    couch_df[col] = 0
-
-            # Reorder columns
-            df = couch_df[columns]
-
-            # Manual refresh
-            if st.button("🔄 Refresh Data"):
-                st.cache_data.clear()
-                st.rerun()
-
-            # Timestamp
-            st.caption(f"Last updated UTC: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
-        except Exception as e:
-            st.error(f"Error fetching data from CouchDB: {e}")
-#--------------------------------------------------------------------------------------------------
+            except Exception as e:
+                st.error(f"❌ Error fetching or aligning data: {e}")
+                # Return dummy row of zeros to keep schema consistent
+                return pd.DataFrame(0, index=[0], columns=columns)
+    #--------------------------------------------------------------------------------------------------
         # Validate required columns
         required_cols = ['Date', 'List', 'Trim']
         # Add tank-specific columns based on available tanks
@@ -1479,6 +1461,9 @@ if auth_status:
                 f'Liq_temp_TK{i}',
                 f'Press_TK{i}'
             ])
+
+        # Fetch data from CouchDB and ensure df is available for validation
+        df = fetch_data(columns)
 
         if not all(col in df.columns for col in required_cols):
             st.error(f"Missing required columns. File must contain: {', '.join(required_cols)}")
@@ -2655,3 +2640,4 @@ elif auth_status == False:
 
 elif auth_status == None:
     st.warning("Please enter your username and password 🔐")
+
