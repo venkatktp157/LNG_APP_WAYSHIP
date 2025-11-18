@@ -10,3 +10,4 @@ streamlit-authenticator==0.2.3
 bcrypt
 supabase
 couchdb
+python-dotenv
