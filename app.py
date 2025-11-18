@@ -1361,10 +1361,10 @@ if auth_status:
         tank_ids = available_ships[ship_id]
 
         # ========== CONFIGURATION ==============
-        COUCHDB_USER = os.getenv("COUCHDB_USER")
-        COUCHDB_PASS = os.getenv("COUCHDB_PASS")
-        COUCHDB_HOST = os.getenv("COUCHDB_HOST", "localhost")
-        COUCHDB_PORT = os.getenv("COUCHDB_PORT", "5984")
+        COUCHDB_USER = st.secrets["COUCHDB_USER"]
+        COUCHDB_PASS = st.secrets["COUCHDB_PASS"]
+        COUCHDB_HOST = st.secrets["COUCHDB_HOST"]
+        COUCHDB_PORT = st.secrets["COUCHDB_PORT"]
 
         if not COUCHDB_USER or not COUCHDB_PASS:
             st.error("❌ CouchDB credentials not set in environment variables.")
