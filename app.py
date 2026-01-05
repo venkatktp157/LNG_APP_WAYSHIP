@@ -68,7 +68,8 @@ if auth_status:
         "MOUNT GOWER": ["LNG_TK1", "LNG_TK2"],
         "MOUNT GAEA": ["LNG_TK1", "LNG_TK2"],
         "MOUNT COOK": ["LNG_TK1", "LNG_TK2"],
-        "MOUNT ARARAT": ["LNG_TK1", "LNG_TK2"],    
+        "MOUNT ARARAT": ["LNG_TK1", "LNG_TK2"],  
+        "ATLANTIC PEARL": ["LNG_TK1", "LNG_TK2"], 
         "CMA CGM ARCTIC" : ["LNG_TK"],
         "CMA CGM BALI" : ["LNG_TK"],
         "CMA CGM DIGNITY" : ["LNG_TK"],
@@ -86,6 +87,7 @@ if auth_status:
         "ZIM SCORPIO" : ["LNG_TANK"],
         "QUETZAL" : ["LNGAS_TK"],
         "COPAN" : ["LNGAS_TK"],
+        "TISCAPA": ["LNGAS_TK"],
         "CMA CGM DAYTONA": ["LNG_TK1", "LNG_TK2"],
         "CMA CGM INDIANAPOLIS": ["LNG_TK1", "LNG_TK2"],
         "CMA CGM MONACO": ["LNG_TK1", "LNG_TK2"],
@@ -522,8 +524,23 @@ if auth_status:
                 temp_correction = level_temp_interpolator([[level, temp_]])[0]
                 press_correction = level_press_interpolator([[level, press_]])[0]    
 
-                corrected_level = level + list_correction + trim_correction + temp_correction + press_correction    
+                corrected_level = level + list_correction + trim_correction + temp_correction + press_correction 
 
+                # Step 2: Debug print to see what’s happening 
+                print(f"[DEBUG] Corrected level for ship {ship_id}, tank {tank_id}: {corrected_level}") 
+
+                level_min, level_max = float(level_volume_df["level"].min()), float(level_volume_df["level"].max())
+                # # Step 3: Get valid bounds from your calibration table 
+                # min_level = min(level) # levels is the array you used to build the interpolator 
+                # max_level = max(level) 
+
+                print(f"[DEBUG] Valid level range: {level_min} – {level_max}") 
+
+                # Step 4: Clamp the corrected level if it’s outside bounds                 
+                if corrected_level < level_min or corrected_level > level_max: 
+                    print(f"[WARNING] Corrected level {corrected_level} out of bounds. Clamping to valid range.") 
+                    corrected_level = np.clip(corrected_level, level_min, level_max)
+                    
                 corrected_volume = level_volume_interpolator([[corrected_level]])[0]    
 
                 return round(corrected_level, 2), round(corrected_volume, 2)    
@@ -587,13 +604,19 @@ if auth_status:
             LNG_TK2_cap = 2322.097
             identity = "110k_tanker"
 
+        elif ship_id in ["ATLANTIC PEARL"]:   #111K_tanker
+            BOG_max = 1200    # to be ascertained
+            LNG_TK1_cap = 1816.435
+            LNG_TK2_cap = 1818.006
+            identity = "111k_tanker"
+
         elif ship_id in ["STARWAY", "GREENWAY"]:   #150K_tanker
             BOG_max = 1200
             LNG_TK1_cap = 2570.133
             LNG_TK2_cap = 2571.517
             identity = "150k_tanker"   
-            
-        elif ship_id in ["QUETZAL", "COPAN"]:   #1400TEU_cont
+
+        elif ship_id in ["QUETZAL", "COPAN", "TISCAPA"]:   #1400TEU_cont
             BOG_max = 500
             LNG_TK1_cap = 1613
             identity = "1400TEU_cont"           
@@ -1071,7 +1094,7 @@ if auth_status:
                 list_min, list_max = (min(list_values), max(list_values)) if list_values else (None, None)
                 trim_min, trim_max = (min(trim_values), max(trim_values)) if trim_values else (None, None)
                 temp_min, temp_max = -163.0, 20.0
-                press_min, press_max = -1.0, 6.0
+                press_min, press_max = 0, 700
 
                 return level_min, level_max, list_min, list_max, trim_min, trim_max, temp_min, temp_max, press_min, press_max
             
@@ -1104,7 +1127,7 @@ if auth_status:
                 list_min, list_max = (min(list_values), max(list_values)) if list_values else (None, None)
                 trim_min, trim_max = (min(trim_values), max(trim_values)) if trim_values else (None, None)
                 temp_min, temp_max = -165.0, 20.0
-                press_min, press_max = 0, 0.7
+                press_min, press_max = 0, 700
 
                 return level_min, level_max, list_min, list_max, trim_min, trim_max, temp_min, temp_max, press_min, press_max
 
@@ -1139,7 +1162,7 @@ if auth_status:
                 list_min, list_max = (min(list_values), max(list_values)) if list_values else (None, None)
                 trim_min, trim_max = (min(trim_values), max(trim_values)) if trim_values else (None, None)
                 temp_min, temp_max = -163.0, 20.0
-                press_min, press_max = -1.0, 6.0
+                press_min, press_max = 0, 700
 
                 return level_min, level_max, list_min, list_max, trim_min, trim_max, temp_min, temp_max, press_min, press_max      
 
@@ -1522,6 +1545,11 @@ if auth_status:
             LNG_TK1_cap = 2324.113
             LNG_TK2_cap = 2322.097
             identity = "110k_tanker"
+        elif ship_id in ["ATLANTIC PEARL"]:   #111K_tanker
+            BOG_max = 1200  # TO BE ASCERTAINED
+            LNG_TK1_cap = 1816.435
+            LNG_TK2_cap = 1818.006
+            identity = "111k_tanker"
         elif ship_id in ["STARWAY", "GREENWAY"]:   #150K_tanker
             BOG_max = 1200
             LNG_TK1_cap = 2570.133
