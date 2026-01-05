@@ -655,19 +655,19 @@ if auth_status:
 
         with col4:
             st.markdown("<h2 style='font-size: 18px;'>Closing Tank No.1</h2>", unsafe_allow_html=True)
-            level3 = st.number_input(f"🔹 Enter Tank No.1 Closing Level (mm) - Range: {tank1_level_min} to {tank1_level_max}", value=tank1_level_min, step=0.01)
+            level3 = st.number_input(f"🔹 Enter Tank No.1 Closing Level (m/cm/mm) - Range: {tank1_level_min} to {tank1_level_max}", value=tank1_level_min, step=0.01)
             temp_3 = st.number_input(f"🔹 Enter Tank No.1 Closing Vapor Temperature (°C) - Range: {tank1_temp_min} to {tank1_temp_max}", value=0.0, step=0.01)
             Temp3 = st.number_input(f"🔹 Enter Tank No.1 Closing Liquid Temperature (°C) - Range: {tank1_temp_min} to {tank1_temp_max}", value=0.0, step=0.01)
-            press_3 = st.number_input(f"🔹 Enter Tank No.1 Closing Gauge Pressure (Bar) - Range: {tank1_press_min} to {tank1_press_max}", 
+            press_3 = st.number_input(f"🔹 Enter Tank No.1 Closing Gauge Pressure (mbar/Bar) - Range: {tank1_press_min} to {tank1_press_max}", 
                                     value=0.0, step=0.01, format="%.4f")
 
         with col5:
             if len(tank_ids) > 1:
                 st.markdown("<h2 style='font-size: 18px;'>Closing Tank No.2</h2>", unsafe_allow_html=True)
-                level4 = st.number_input(f"🔹 Enter Tank No.2 Closing Level (mm) - Range: {tank2_level_min} to {tank2_level_max}", value=tank2_level_min, step=0.01)
+                level4 = st.number_input(f"🔹 Enter Tank No.2 Closing Level (m/cm/mm) - Range: {tank2_level_min} to {tank2_level_max}", value=tank2_level_min, step=0.01)
                 temp_4 = st.number_input(f"🔹 Enter Tank No.2 Closing Vapor Temperature (°C) - Range: {tank2_temp_min} to {tank2_temp_max}", value=0.0, step=0.01)
                 Temp4 = st.number_input(f"🔹 Enter Tank No.2 Closing Liquid Temperature (°C) - Range: {tank2_temp_min} to {tank2_temp_max}", value=0.0, step=0.01)
-                press_4 = st.number_input(f"🔹 Enter Tank No.2 Closing Gauge Pressure (Bar) - Range: {tank2_press_min} to {tank2_press_max}", 
+                press_4 = st.number_input(f"🔹 Enter Tank No.2 Closing Gauge Pressure (mbar/Bar) - Range: {tank2_press_min} to {tank2_press_max}", 
                                         value=0.0, step=0.01, format="%.4f")
 
         with col6:
