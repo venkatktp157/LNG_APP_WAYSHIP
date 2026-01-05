@@ -247,7 +247,7 @@ if auth_status:
                 list_min, list_max = (min(list_values), max(list_values)) if list_values else (None, None)
                 trim_min, trim_max = (min(trim_values), max(trim_values)) if trim_values else (None, None)
                 temp_min, temp_max = -163.0, 20.0
-                press_min, press_max = 0, 0.7
+                press_min, press_max = 0, 700
 
                 return level_min, level_max, list_min, list_max, trim_min, trim_max, temp_min, temp_max, press_min, press_max
             
@@ -280,7 +280,7 @@ if auth_status:
                 list_min, list_max = (min(list_values), max(list_values)) if list_values else (None, None)
                 trim_min, trim_max = (min(trim_values), max(trim_values)) if trim_values else (None, None)
                 temp_min, temp_max = -165.0, 20.0
-                press_min, press_max = 0, 0.7
+                press_min, press_max = 0, 700
 
                 return level_min, level_max, list_min, list_max, trim_min, trim_max, temp_min, temp_max, press_min, press_max
 
@@ -314,7 +314,7 @@ if auth_status:
                 list_min, list_max = (min(list_values), max(list_values)) if list_values else (None, None)
                 trim_min, trim_max = (min(trim_values), max(trim_values)) if trim_values else (None, None)
                 temp_min, temp_max = -163.0, 20.0
-                press_min, press_max = 0, 0.7
+                press_min, press_max = 0, 700
 
                 return level_min, level_max, list_min, list_max, trim_min, trim_max, temp_min, temp_max, press_min, press_max      
 
@@ -627,7 +627,7 @@ if auth_status:
 
         with col1:
             st.markdown("<h2 style='font-size: 18px;'>Opening Tank No.1</h2>", unsafe_allow_html=True)
-            level1 = st.number_input(f"🔹 Enter Tank No.1 Opening Level (mm) - Range: {tank1_level_min} to {tank1_level_max}", value=tank1_level_min, step=0.01)
+            level1 = st.number_input(f"🔹 Enter Tank No.1 Opening Level (m/cm/mm) - Range: {tank1_level_min} to {tank1_level_max}", value=tank1_level_min, step=0.01)
             temp_1 = st.number_input(f"🔹 Enter Tank No.1 Opening Vapor Temperature (°C) - Range: {tank1_temp_min} to {tank1_temp_max}", value=0.0, step=0.01)
             Temp1 = st.number_input(f"🔹 Enter Tank No.1 Opening Liquid Temperature (°C) - Range: {tank1_temp_min} to {tank1_temp_max}", value=0.0, step=0.01)
             press_1 = st.number_input(f"🔹 Enter Tank No.1 Opening Gauge Pressure (Bar) - Range: {tank1_press_min} to {tank1_press_max}", 
@@ -636,7 +636,7 @@ if auth_status:
         with col2:
             if len(tank_ids) > 1:
                 st.markdown("<h2 style='font-size: 18px;'>Opening Tank No.2</h2>", unsafe_allow_html=True)
-                level2 = st.number_input(f"🔹 Enter Tank No.2 Opening Level (mm) - Range: {tank2_level_min} to {tank2_level_max}", value=tank2_level_min, step=0.01)
+                level2 = st.number_input(f"🔹 Enter Tank No.2 Opening Level (m/cm/mm) - Range: {tank2_level_min} to {tank2_level_max}", value=tank2_level_min, step=0.01)
                 temp_2 = st.number_input(f"🔹 Enter Tank No.2 Opening Vapor Temperature (°C) - Range: {tank2_temp_min} to {tank2_temp_max}", value=0.0, step=0.01)
                 Temp2 = st.number_input(f"🔹 Enter Tank No.2 Opening Liquid Temperature (°C) - Range: {tank2_temp_min} to {tank2_temp_max}", value=0.0, step=0.01)
                 press_2 = st.number_input(f"🔹 Enter Tank No.2 Opening Gauge Pressure (Bar) - Range: {tank2_press_min} to {tank2_press_max}", 
